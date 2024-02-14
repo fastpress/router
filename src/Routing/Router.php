@@ -50,7 +50,7 @@ class Router
      * @param callable $callable
      * @return void
      */
-    public function any(string $uri, callable $callable): void
+    public function any(string $uri, callable|string $callable): void
     {
         $this->addRoute('GET', $uri, $callable);
         $this->addRoute('POST', $uri, $callable);
@@ -65,7 +65,7 @@ class Router
      * @param callable $callable
      * @return void
      */
-    public function get(string $uri, callable $callable): void
+    public function get(string $uri, callable|string $callable): void
     {
         $this->addRoute('GET', $uri, $callable);
     }
@@ -77,7 +77,7 @@ class Router
      * @param callable $callable
      * @return void
      */
-    public function post(string $uri, callable $callable): void
+    public function post(string $uri, callable|string $callable): void
     {
         $this->addRoute('POST', $uri, $callable);
     }
@@ -89,7 +89,7 @@ class Router
      * @param callable $callable
      * @return void
      */
-    public function put(string $uri, callable $callable): void
+    public function put(string $uri, callable|string $callable): void
     {
         $this->addRoute('PUT', $uri, $callable);
     }
@@ -101,7 +101,7 @@ class Router
      * @param callable $callable
      * @return void
      */
-    public function delete(string $uri, callable $callable): void
+    public function delete(string $uri, callable|string $callable): void
     {
         $this->addRoute('DELETE', $uri, $callable);
     }
@@ -114,7 +114,7 @@ class Router
      * @param callable $callable the callable method ex:  ('/' function () {})
      * @return void
      */
-    protected function addRoute(string $method, string $uri, callable $callable): void
+    protected function addRoute(string $method, string $uri, callable|string $callable): void
     {
         array_push($this->routes[$method], [$uri => $callable]);
     }
