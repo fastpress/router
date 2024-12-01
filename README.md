@@ -1,72 +1,95 @@
 # Fastpress Router
 
-Fastpress Router is a simple yet powerful routing class for PHP, part of the Fastpress framework. It allows you to define routes for your application and handle HTTP requests efficiently.
+The Fastpress Router is a powerful and flexible routing system for PHP applications. It provides a simple and intuitive way to define routes, handle HTTP requests, and manage the flow of your web application.
 
 ## Features
 
-- Supports GET, POST, PUT, and DELETE HTTP methods.
-- Easy definition of route patterns.
-- Supports RESTful routing.
-- Customizable route patterns.
-
-## Requirements
-
-- PHP 7.0 or higher.
+- Support for multiple HTTP methods (GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD)
+- Route parameters with custom patterns
+- Named routes for easy URL generation
+- Route groups for shared attributes
+- Middleware support
+- Route constraints
+- Optional parameters
+- Conflict detection to prevent ambiguous routes
 
 ## Installation
 
-Insert instructions for installing this router class or the Fastpress framework.
-
-## Usage
-
-### Basic Usage
+To use the Fastpress Router in your project, you can include it in your PHP files:
 
 ```php
-require 'path/to/Router.php';
+use Fastpress\Routing\Router;
 
-$router = new Fastpress\Routing\Router();
+require_once 'path/to/Router.php';
+```
 
-// Define a GET route
-$router->get('/home', function() {
-    return 'Welcome to the homepage!';
+# Basic Usage
+## Defining Routes
+```php
+$router = new Router();
+
+// Define a simple GET route
+$router->get('/hello', function() {
+    echo "Hello, World!";
 });
 
-// Handle the request
-// Assuming $server and $post are your $_SERVER and $_POST variables
-$result = $router->match($server, $post);
+// Define a POST route with parameters
+$router->post('/users/{id}', 'UserController@update');
+```
 
-if ($result) {
-    // Route was matched
-    list($args, $callable) = $result;
-    call_user_func_array($callable, $args);
+## Matching Routes
+```php
+$match = $router->match($_SERVER, $_POST);
+
+if ($match) {
+    $handler = $match['handler'];
+    $params = $match['params'];
+    
+    // Execute the handler with the matched parameters
+    // ...
 } else {
-    // No route was matched
-    header("HTTP/1.0 404 Not Found");
+    // No matching route found
+    // Handle 404 Not Found
 }
 ```
-### Defining Routes
-You can define routes for different HTTP methods:
+# Advanced Usage
+## Route Groups
 ```php
-$router->get($uri, $callable);
-$router->post($uri, $callable);
-$router->put($uri, $callable);
-$router->delete($uri, $callable);
+$router->group(['prefix' => 'admin', 'middleware' => ['auth']], function($router) {
+    $router->get('/dashboard', 'AdminController@dashboard');
+    $router->get('/users', 'AdminController@users');
+});
 ```
 
-### Route Patterns
-You can use the following placeholders in your route patterns:
-- :any - Matches any characters
-- :id - Matches numeric characters
-- :slug - Matches alphanumeric characters, dashes, and underscores
-- :name - Matches alphabetic characters
-- :url - Matches alphanumeric characters and URL-friendly symbols
+## Named Routes
+```php
+$router->get('/profile/{id}', 'ProfileController@show')->name('profile.show');
 
-## Contributing
-Contributions are welcome! Please feel free to submit a pull request or open issues to improve the library.
+// Generate URL for named route
+$url = $router->getNamedRoute('profile.show', ['id' => 123]);
+```
 
+## Custom Route Parameters
+```php
+$router->addPattern('uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
-## License
-This library is open-sourced software licensed under the MIT license.
+$router->get('/users/{uuid}', 'UserController@show');
+```
 
-## Support
-If you encounter any issues or have questions, please file them in the issues section on GitHub.
+## Middleware
+```php
+$router->get('/admin/dashboard', 'AdminController@dashboard')
+    ->middleware('auth');
+```
+
+## Route Constraints
+```php
+
+$router->get('/users/{id}', 'UserController@show')
+    ->where(['id' => '\d+']);
+```
+
+# Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+License
+This Fastpress Router is open-sourced software licensed under the MIT license.
