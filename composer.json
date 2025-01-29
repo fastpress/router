@@ -2,7 +2,7 @@
     "name": "fastpress/router",
     "description": "A simple yet powerful routing component for the Fastpress framework, enabling efficient HTTP routing in PHP applications.",
     "type": "library",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "require": {
         "php": "^7.4 || ^8.0"
     },
