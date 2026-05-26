@@ -1,60 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 use Fastpress\Routing\Router;
 use PHPUnit\Framework\TestCase;
 
 class RouterTest extends TestCase
 {
-    protected $router;
+    protected Router $router;
 
     protected function setUp(): void
     {
         $this->router = new Router();
     }
 
-    public function testAddingRoutes()
+    public function testAddingRoutes(): void
     {
-        $this->router->get('/users', function () { /* ... */ });
-        $this->router->post('/posts', function () { /* ... */ });
-        $this->router->any('/profile', function () { /* ... */ });
+        $this->router->get('/users', 'UserController@index');
+        $this->router->post('/posts', 'PostController@store');
+        $this->router->any('/profile', 'ProfileController@show');
 
-        // Assuming each route is stored as an element in the array
-        $this->assertCount(2, $this->router->routes['GET']); // 1 from 'get', 1 from 'any'
-        $this->assertCount(2, $this->router->routes['POST']); // 1 from 'post', 1 from 'any'
-        $this->assertCount(1, $this->router->routes['PUT']); // From 'any'
-        $this->assertCount(1, $this->router->routes['DELETE']); // From 'any'
+        $routes = $this->router->getRoutes();
+
+        $this->assertCount(2, $routes['GET']);
+        $this->assertCount(2, $routes['POST']);
+        $this->assertCount(1, $routes['PUT']);
+        $this->assertCount(1, $routes['DELETE']);
     }
 
-    public function testSimpleRouteMatching()
+    public function testSimpleRouteMatching(): void
     {
-        $this->router->get('/about', function () { });
+        $this->router->get('/about', 'PageController@about');
 
         $match = $this->router->match(['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/about'], []);
         $this->assertNotNull($match);
         $this->assertIsArray($match);
+        $this->assertEquals('PageController@about', $match['handler']);
 
         $noMatch = $this->router->match(['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/contact'], []);
-        $this->assertFalse($noMatch);
+        $this->assertNull($noMatch);
     }
 
-    public function testRouteMatchingWithParameters()
+    public function testRouteMatchingWithParameters(): void
     {
-        $this->router->get('/users/:id', function ($id) { });
+        $this->router->get('/users/{id}', 'UserController@show');
 
         $match = $this->router->match(['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/users/123'], []);
         $this->assertNotNull($match);
         $this->assertIsArray($match);
-        $this->assertEquals(['123'], $match[0]); // Captured parameters
+        $this->assertEquals('123', $match['params']['id']);
     }
 
-    public function testRestfulMethodDetection()
+    public function testRouteMatchingReturnsMiddleware(): void
     {
-        $this->router->put('/posts/5', function () { });
+        $this->router->get('/admin', 'AdminController@index')->middleware('AuthMiddleware');
 
-        $match = $this->router->match(['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/posts/5'], ['_method' => 'PUT']);
+        $match = $this->router->match(['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/admin'], []);
         $this->assertNotNull($match);
-        $this->assertIsArray($match);
+        $this->assertContains('AuthMiddleware', $match['middleware']);
     }
 
-    // ... Additional tests ...
+    public function testRouteGroup(): void
+    {
+        $this->router->group(['prefix' => '/api'], function (Router $router) {
+            $router->get('/users', 'Api\UserController@index');
+        });
+
+        $match = $this->router->match(['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/api/users'], []);
+        $this->assertNotNull($match);
+        $this->assertEquals('Api\UserController@index', $match['handler']);
+    }
+
+    public function testNoMatchReturnsNull(): void
+    {
+        $this->router->get('/home', 'HomeController@index');
+
+        $result = $this->router->match(['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/home'], []);
+        $this->assertNull($result);
+    }
 }
