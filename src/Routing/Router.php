@@ -517,6 +517,6 @@ class Router
         // Remove optional parameters that weren't provided
         $uri = preg_replace('/\/{[^}]+\?}/', '', $uri);
 
-        return $uri;
+        return is_string($uri) ? $uri : null;
     }
 }
