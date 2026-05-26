@@ -2,7 +2,6 @@
     "name": "fastpress/router",
     "description": "A simple yet powerful routing component for the Fastpress framework, enabling efficient HTTP routing in PHP applications.",
     "type": "library",
-    "version": "0.1.2",
     "require": {
         "php": "^8.0"
     },
@@ -29,7 +28,14 @@
             "email": "samayo@pm.me"
         }
     ],
-    "keywords": ["http", "router", "php", "fastpress", "routing", "framework"],
+    "keywords": [
+        "http",
+        "router",
+        "php",
+        "fastpress",
+        "routing",
+        "framework"
+    ],
     "homepage": "https://github.com/fastpress/router",
     "support": {
         "issues": "https://github.com/fastpress/router/issues",
@@ -39,11 +45,6 @@
         "optimize-autoloader": true,
         "platform": {
             "php": "8.0"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-main": "1.0.x-dev"
         }
     }
 }
