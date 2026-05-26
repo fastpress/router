@@ -103,9 +103,9 @@ class Router
      * @param string|array $middleware The middleware to add.
      * @return $this
      */
-    public function middleware(string|array $middleware): self
+    public function middleware(string|array|callable $middleware): self
     {
-        $middleware = (array) $middleware;
+        $middleware = is_array($middleware) ? $middleware : [$middleware];
         $route = &$this->getLastAddedRoute();
         if ($route !== null) {
             $route['middleware'] = array_merge(
