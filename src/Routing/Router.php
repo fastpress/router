@@ -34,8 +34,6 @@ class Router
         'uuid' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
     ];
 
-    /** @var array<string, array> */
-    private array $middleware = [];
     /** @var array[] */
     private array $groupStack = [];
     /** @var array<string, array<string, string>> */
@@ -108,10 +106,10 @@ class Router
     public function middleware(string|array $middleware): self
     {
         $middleware = (array) $middleware;
-        $lastRoute = $this->getLastAddedRoute();
-        if ($lastRoute) {
-            $lastRoute['middleware'] = array_merge(
-                $lastRoute['middleware'] ?? [],
+        $route = &$this->getLastAddedRoute();
+        if ($route !== null) {
+            $route['middleware'] = array_merge(
+                $route['middleware'] ?? [],
                 $middleware
             );
         }
@@ -126,27 +124,31 @@ class Router
      */
     public function where(array $constraints): self
     {
-        $lastRoute = $this->getLastAddedRoute();
-        if ($lastRoute) {
+        $route = &$this->getLastAddedRoute();
+        if ($route !== null) {
             foreach ($constraints as $param => $pattern) {
                 $this->addPattern("custom_{$param}", $pattern);
-                $lastRoute['constraints'][$param] = "custom_{$param}";
+                $route['constraints'][$param] = "custom_{$param}";
             }
         }
         return $this;
     }
 
     /**
-     * Get the last added route.
+     * Get the last added route by reference.
      *
      * @return array|null
      */
-    private function getLastAddedRoute(): ?array
+    private function &getLastAddedRoute(): ?array
     {
+        $null = null;
         if (!isset($this->lastMethod, $this->lastRouteIndex)) {
-            return null;
+            return $null;
         }
-        return $this->routes[$this->lastMethod][$this->lastRouteIndex] ?? null;
+        if (!isset($this->routes[$this->lastMethod][$this->lastRouteIndex])) {
+            return $null;
+        }
+        return $this->routes[$this->lastMethod][$this->lastRouteIndex];
     }
 
 
@@ -276,6 +278,7 @@ class Router
         ];
 
         $this->routes[$method][] = $route;
+        $this->routeConflicts[$method][$signature] = $uri;
 
         // Store the last added method and index
         $this->lastMethod = $method;
@@ -400,14 +403,12 @@ class Router
         }
 
         foreach ($this->routes[$method] as $route) {
-
-
-
             $params = $this->matchRoute($route, $uri);
             if ($params !== null) {
                 return [
                     'params' => $params,
-                    'handler' => $route['handler']
+                    'handler' => $route['handler'],
+                    'middleware' => $route['middleware'] ?? [],
                 ];
             }
         }
@@ -428,11 +429,7 @@ class Router
     {
 
         if (!preg_match($route['pattern'], $requestUri, $matches)) {
-
             return null;
-        } else {
-
-
         }
 
         array_shift($matches);
