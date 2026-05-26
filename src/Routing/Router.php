@@ -201,6 +201,18 @@ class Router
     }
 
     /**
+     * Add a PATCH route.
+     *
+     * @param string          $uri     The URI of the route.
+     * @param callable|string $handler The handler function or method.
+     * @return $this
+     */
+    public function patch(string $uri, callable|string $handler): self
+    {
+        return $this->addRoute('PATCH', $uri, $handler);
+    }
+
+    /**
      * Add a route that matches any HTTP method.
      *
      * @param string          $uri     The URI of the route.
@@ -311,7 +323,7 @@ class Router
         // Extract optional parameters
         preg_match_all(self::OPTIONAL_PARAM_PATTERN, $uri, $matches);
         foreach ($matches[1] as $param) {
-            $param = rtrim($param, '?');
+            $param = ltrim(rtrim($param, '?'), ':');
             $params[$param] = [
                 'optional' => true,
                 'name' => $param
@@ -321,6 +333,7 @@ class Router
         // Extract required parameters
         preg_match_all(self::PARAM_PATTERN, $uri, $matches);
         foreach ($matches[1] as $param) {
+            $param = ltrim($param, ':');
             // Skip if already processed as optional
             if (isset($params[$param])) {
                 continue;
@@ -352,7 +365,7 @@ class Router
         $path = preg_replace_callback(
             self::OPTIONAL_PARAM_PATTERN,
             function ($matches) {
-                $param = rtrim($matches[1], '?');
+                $param = ltrim(rtrim($matches[1], '?'), ':');
                 $pattern = $this->patterns[$param] ?? '[^/]+';
                 return "(?:/($pattern))?";
             },
@@ -368,6 +381,7 @@ class Router
                 if (substr($param, -1) === '?') {
                     return $matches[0];
                 }
+                $param = ltrim($param, ':');
                 $pattern = $this->patterns[$param] ?? '[^/]+';
                 return "($pattern)";
             },
